@@ -32,4 +32,10 @@ void set_num_wines(CATALOG *catalog, int i);*/
 
 int get_num_wines(const CATALOG *catalog);
 
+void search(CATALOG *catalog, const int id_catact,const  double param);
+
+void wines_Sort(CATALOG *catalog, const int id_catact);
+
+int buscaBinaria_wines(CATALOG *catalog, const int id_catact, const double param);
+
 #endif //CATALOG_H

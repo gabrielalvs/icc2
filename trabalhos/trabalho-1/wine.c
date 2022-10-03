@@ -72,3 +72,28 @@ void wine_print(const WINE *wine)
         wine->density, wine->pH, wine->alcohol);
     }
 }
+
+double wine_get_caract(const WINE *wine, int id_catact)
+{
+    if (wine != NULL)
+    {
+        switch (id_catact) {
+        case 1:
+            return wine->citric_acid;
+            break;
+        case 2:
+            return wine->residual_sugar;
+            break;
+        case 3:
+            return wine->density;
+            break;
+        case 4:
+            return wine->pH;
+            break;
+        case 5:
+            return wine->alcohol;
+            break;
+        }
+    }
+    return ERRO;
+}

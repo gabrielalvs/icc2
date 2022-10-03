@@ -149,3 +149,91 @@ void catalog_print(const CATALOG *catalog)
         }
     }
 }
+
+void search(CATALOG *catalog, const int id_catact, const double param)
+{
+    if(catalog!=NULL)
+    {   
+        //printf("%i  %lf \n" , id_catact, param);
+        wines_Sort(catalog, id_catact);
+        //catalog_print(catalog);
+        int index = buscaBinaria_wines(catalog, id_catact, param);
+        if(index==-1){
+            printf("Nenhum vinho encontrado\n");
+        return;
+        }
+
+        int i = index +1;
+        while(wine_get_caract(catalog->wines[index], id_catact) == wine_get_caract(catalog->wines[i], id_catact))i++;
+        wine_print(catalog->wines[index]);
+        printf("Total de vinhos encontrados: %d\n", i-index);
+    }
+}
+
+/*void wines_Sort(CATALOG *catalog, const int id_catact)
+{
+    int tamanho = catalog->n_vinhos;
+    	int j; //indica o elemento atual
+	for(j = tamanho-2; j >= 0; j--){//o elemento na posição final não precisa analisar
+		WINE *wine = catalog->wines[j];
+		int i = j + 1; //armazenar a posição de análise (posterior ao j até o fim do vetor)
+		
+		//início && valor atual é menor que a chave de análise || igual com id menor
+		while (i <= tamanho-1 && 
+        ((wine_get_caract(catalog->wines[i],id_catact) < wine_get_caract(wine,id_catact)) 
+            ||  (wine_get_caract(catalog->wines[i],id_catact) == wine_get_caract(wine,id_catact) 
+                && (wine_get_id(catalog->wines[i]) < wine_get_id(wine)))))
+        {
+            catalog->wines[i-1] = catalog->wines[i];
+			i++;
+		}
+        catalog->wines[i-1] = wine; //posiciona a chave na posição correta
+	}
+}*/
+
+void wines_Sort(CATALOG *catalog, const int id_catact){
+    int tamanho = catalog->n_vinhos-1;
+    int pos;
+    
+
+    for(int j = 0; j<=tamanho;j++)
+    {   
+        WINE *wine;
+        pos = 0 ;
+        for(int i = 1; i<=tamanho-j; i++)
+        {
+            wine = catalog->wines[pos];
+            if((wine_get_caract(catalog->wines[i],id_catact)>wine_get_caract(wine,id_catact)) 
+            || (wine_get_caract(catalog->wines[i],id_catact) == wine_get_caract(wine,id_catact)
+                && wine_get_id(catalog->wines[i]) > wine_get_id(wine)))
+            {
+                pos = i;
+            }
+        }
+        wine = catalog->wines[tamanho-j];
+        catalog->wines[tamanho-j] = catalog->wines[pos];
+        catalog->wines[pos] = wine;
+    }
+}
+
+int buscaBinaria_wines(CATALOG *catalog,const int id_catact, const double param){
+    int posicaoInicial = 0 ;
+    int posicaoFinal = catalog->n_vinhos-1;
+    int resultado = -1;
+
+	while(posicaoInicial <= posicaoFinal){ //log n
+		int centro = (int)((posicaoInicial+posicaoFinal)/2);
+    
+		if (param == wine_get_caract(catalog->wines[centro], id_catact)){ 
+			resultado = centro;
+            posicaoFinal = centro - 1;
+        }
+		if (param < wine_get_caract(catalog->wines[centro], id_catact)){ //se o número existir estará na primeira metade
+			posicaoFinal = centro - 1;
+        }
+		if (param > wine_get_caract(catalog->wines[centro], id_catact)){ //se o número existir estará na segunda metade
+			posicaoInicial = centro + 1;
+        }
+	}
+	return resultado;//valor não encontrado
+}

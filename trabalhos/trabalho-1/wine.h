@@ -13,5 +13,6 @@ boolean wine_delete(WINE **wine);
 void wine_print(const WINE *wine);
 int wine_get_id(const WINE *wine);
 boolean wine_set_id(WINE *wine, int id);
+double wine_get_caract(const WINE *wine, int id_catact);
 
 #endif //WINE_H
