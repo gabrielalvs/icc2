@@ -154,9 +154,7 @@ void search(CATALOG *catalog, const int id_catact, const double param)
 {
     if(catalog!=NULL)
     {   
-        //printf("%i  %lf \n" , id_catact, param);
         wines_Sort(catalog, id_catact);
-        //catalog_print(catalog);
         int index = buscaBinaria_wines(catalog, id_catact, param);
         if(index==-1){
             printf("Nenhum vinho encontrado\n");
@@ -224,7 +222,7 @@ int buscaBinaria_wines(CATALOG *catalog,const int id_catact, const double param)
 	while(posicaoInicial <= posicaoFinal){ //log n
 		int centro = (int)((posicaoInicial+posicaoFinal)/2);
     
-		if (param == wine_get_caract(catalog->wines[centro], id_catact)){ 
+		if (param == wine_get_caract(catalog->wines[centro], id_catact)){//garante que o resultado esta a esquerda 
 			resultado = centro;
             posicaoFinal = centro - 1;
         }
@@ -235,5 +233,5 @@ int buscaBinaria_wines(CATALOG *catalog,const int id_catact, const double param)
 			posicaoInicial = centro + 1;
         }
 	}
-	return resultado;//valor não encontrado
+	return resultado;//resultado
 }
