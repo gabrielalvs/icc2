@@ -10,6 +10,6 @@ typedef int boolean;
 
 typedef struct torneio_st TORNEIO;
 
-boolean torneio_apagar(TORNEIO **torneio, int tamanho);
+boolean torneio_apagar(TORNEIO **torneio);
 boolean torneio_ordenar(DIARIO *diario);
 #endif //TORNEIO_H

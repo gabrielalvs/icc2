@@ -37,14 +37,10 @@ COMPETIDOR *competidor_criar (ALUNO *aluno, int posicao_largada)
     return NULL;
 }
 
-boolean torneio_apagar(TORNEIO **torneio, int tamanho)
+boolean torneio_apagar(TORNEIO **torneio)
 {
     if (*torneio != NULL)
-    {   
-        for (int i = 0; i < tamanho; i++)
-        {
-           free ((*torneio)->competidores[i]);
-        }
+    {
         free ((*torneio)->competidores);
         free (*torneio);
         *torneio = NULL;
@@ -64,9 +60,10 @@ static boolean torneio_comparar_competidores(TORNEIO *torneio, int aux);
 
 static boolean torneio_preencher_resultado(TORNEIO *torneio_resultado, TORNEIO *torneio,  int quant_vencedores);
 
+static boolean torneio_terminar(TORNEIO *torneio, TORNEIO *torneio_resultado, DIARIO *diario);
+
 boolean torneio_ordenar(DIARIO *diario)
-{   
-    
+{//função principal do torneio  
     if (diario != NULL)
     {
         /* O tamanho do vetor que sera a estrutura da arvore binária é determinado a partir da profundidade da arvore 
@@ -99,49 +96,34 @@ boolean torneio_ordenar(DIARIO *diario)
         {   
             if(aux < diario_get_nAlunos(diario)){
                 torneio->competidores[i] = competidor_criar(diario_get_aluno(diario,aux), i);
+                torneio_resultado->competidores[aux] = NULL;
             }else{    
-                torneio->competidores[i] = competidor_criar(aluno_criar_null(), i); 
+                torneio->competidores[i] = NULL;
             }
             aux++;
         }
 
         torneio_primeira_ordenacao(torneio, p_folhas, t_arv, diario_get_nNotas(diario));
-        /*for (int i = 1; i < t_arv; i++)
-        {
-            aluno_imprimir(torneio->competidores[i]->aluno);
-        }
-        printf("\n--------------------------------------------------------------------------------------"); */
 
         int temp = torneio_preencher_resultado(torneio_resultado, torneio, quant_vencedores);
         for (int i = 0; i < diario_get_nAlunos(diario)-1; i++)//essa ordeção será feita o número de elmentos a serem ordenados -1   
         {
             quant_vencedores++;
             torneio_n_ordenacoes(torneio, temp, profundidade);
-            /*for (int i = 1; i < t_arv; i++)
-            {
-                aluno_imprimir(torneio->competidores[i]->aluno);
-            } 
-            printf("\n--------------------------------------------------------------------------------------");*/
             temp = torneio_preencher_resultado(torneio_resultado, torneio, quant_vencedores);
         }
 
         torneio_imprimir_resultado(torneio_resultado, diario_get_nAlunos(diario));
         
-        for (int i = 0; i < diario_get_nAlunos(diario); i++)
-        {  
-            diario_alterar_aluno(diario, torneio_resultado->competidores[i]->aluno, i);
-            //aluno_imprimir(torneio_resultado->competidores[i]->aluno);
-        }
+        torneio_terminar(torneio,torneio_resultado, diario);
 
-        torneio_apagar(&torneio, t_arv);
-        torneio_apagar(&torneio_resultado, diario_get_nAlunos(diario));
         return TRUE;
     }
     return FALSE;
 }
 
 static boolean torneio_primeira_ordenacao(TORNEIO *torneio, int p_folhas, int t_arv, int n_notas)
-{
+{//faz a primeira ordenação da arvore
     if (torneio != NULL)
     {   
         int aux =  t_arv-1;
@@ -157,7 +139,7 @@ static boolean torneio_primeira_ordenacao(TORNEIO *torneio, int p_folhas, int t_
 }
 
 static boolean torneio_n_ordenacoes(TORNEIO *torneio, int posicao_alterada, int profundidade)
-{
+{//faz a ordenação do galho onde um dos integrantes foi atualizado 
 
     if (torneio != NULL)
     {   
@@ -165,7 +147,8 @@ static boolean torneio_n_ordenacoes(TORNEIO *torneio, int posicao_alterada, int 
  
        for (int i = 0; i < profundidade; i++)//a quantidade de alterações a arvore será igual a profundidade da arvore
        {
-            if(aux%2==0){
+            if(aux%2==0)
+            {//comparação sempre ocorre começando pelo filho da esquerda, que é sempre ímpar
                 aux++;
             }
             torneio_comparar_competidores(torneio, aux);
@@ -178,39 +161,48 @@ static boolean torneio_n_ordenacoes(TORNEIO *torneio, int posicao_alterada, int 
 }
 
 
-static boolean torneio_comparar_competidores(TORNEIO *torneio, int aux){
+static boolean torneio_comparar_competidores(TORNEIO *torneio, int aux)
+{//a partir da posição do filho da esquerda faz a comparação do par e coloca no pai o vencedor
     if (torneio != NULL)
     { 
-        if(aluno_get_media(torneio->competidores[aux-1]->aluno) != aluno_get_media(torneio->competidores[aux]->aluno)){
-            //medias diferentes
-            if(aluno_get_media(torneio->competidores[aux-1]->aluno) > aluno_get_media(torneio->competidores[aux]->aluno))
-            {   
-                torneio->competidores[aux/2] = torneio->competidores[aux-1];//filho direito: y = 2x, pai: y = x/2
-            }else{
-                torneio->competidores[(aux-1)/2] = torneio->competidores[aux];//filho esquerdo: y = 2x+1, pai: y = (x-1)/2
-            }
+        if(torneio->competidores[aux-1] == NULL && torneio->competidores[aux] == NULL)
+        {//ambos são nulos
+            torneio->competidores[(aux-1)/2] = NULL;
         }else{
-            //critério de desempate pelas notas
-            if(aluno_get_media(torneio->competidores[aux-1]->aluno) == -1)
-            {
-                torneio->competidores[aux/2] = torneio->competidores[aux-1];//caso em que ambos tem media -1
+            if (torneio->competidores[aux-1] == NULL || torneio->competidores[aux] == NULL )
+            {//pelo menos um é nulo
+                if (torneio->competidores[aux-1] == NULL)
+                {//filho direito é nulo, pai recebe o filho esquerdo
+                    torneio->competidores[(aux-1)/2] =  torneio->competidores[aux]; //filho direito: y = 2x, pai: y = x/2
+                }else{
+                    torneio->competidores[(aux-1)/2] =  torneio->competidores[aux-1]; //filho esquerdo: y = 2x+1, pai: y = (x-1)/2
+                }
             }else{
-                for (int j = 0; j < aluno_get_nNotas(torneio->competidores[aux]->aluno); j++)
-                {
-                    if(aluno_get_nota(torneio->competidores[aux-1]->aluno, j) != aluno_get_nota(torneio->competidores[aux]->aluno,j)){
-                        if(aluno_get_nota(torneio->competidores[aux-1]->aluno, j) > aluno_get_nota(torneio->competidores[aux]->aluno,j))
-                        { 
-                            //sprintf(torneio->competidores[aux-1]->criterio_desempate,"%s %d","desempate: nota", j+1);
-                            if(torneio->competidores[aux-1]->criterio_desempate<j+1){
-                                torneio->competidores[aux-1]->criterio_desempate = j+1;
+                if(aluno_get_media(torneio->competidores[aux-1]->aluno) != aluno_get_media(torneio->competidores[aux]->aluno))
+                {//medias diferentes
+                    if(aluno_get_media(torneio->competidores[aux-1]->aluno) > aluno_get_media(torneio->competidores[aux]->aluno))
+                    {//media do filho direito é maior, pai recebe o filho direito    
+                        torneio->competidores[(aux-1)/2] = torneio->competidores[aux-1];//filho direito: y = 2x, pai: y = x/2
+                    }else{
+                        torneio->competidores[(aux-1)/2] = torneio->competidores[aux];//filho esquerdo: y = 2x+1, pai: y = (x-1)/2
+                    }
+                }else{
+                    //critério de desempate pelas notas
+                    for (int j = 0; j < aluno_get_nNotas(torneio->competidores[aux]->aluno); j++)
+                    {
+                        if(aluno_get_nota(torneio->competidores[aux-1]->aluno, j) != aluno_get_nota(torneio->competidores[aux]->aluno,j))
+                        {//notas diferentes
+                            if(aluno_get_nota(torneio->competidores[aux-1]->aluno, j) > aluno_get_nota(torneio->competidores[aux]->aluno,j))
+                            {//a nota j+1 do filho direito é maior, pai recebe o filho direito 
+                                torneio->competidores[(aux-1)/2] = torneio->competidores[aux-1];//filho direito: y = 2x, pai: y = x/2
+                            }else{
+                                torneio->competidores[(aux-1)/2] = torneio->competidores[aux];//filho esquerdo: y = 2x+1, pai: y = (x-1)/2
                             }
-                            torneio->competidores[aux/2] = torneio->competidores[aux-1];//filho direito: y = 2x, pai: y = x/2
-                            break;
-                        }else{
-                            if(torneio->competidores[aux]->criterio_desempate<j+1){
-                                torneio->competidores[aux]->criterio_desempate = j+1;
+
+                            if(torneio->competidores[(aux-1)/2]->criterio_desempate<j+1)
+                            {//o pai, vencedor da compração, recebe qual nota foi o critério de desempate
+                                    torneio->competidores[(aux-1)/2]->criterio_desempate = j+1;
                             }
-                            torneio->competidores[(aux-1)/2] = torneio->competidores[aux];//filho esquerdo: y = 2x+1, pai: y = (x-1)/2
                             break;
                         }
                     }
@@ -222,13 +214,14 @@ static boolean torneio_comparar_competidores(TORNEIO *torneio, int aux){
     return FALSE;
 }
 
-static int torneio_preencher_resultado(TORNEIO *torneio_resultado, TORNEIO *torneio,  int quant_vencedores){
+static int torneio_preencher_resultado(TORNEIO *torneio_resultado, TORNEIO *torneio,  int quant_vencedores)
+{//faz a troca do primeiro colocado na arvore para o vetor resultado e coloca nulo na sua posição de largada 
 
     if (torneio != NULL)
-    { 
+    {
         torneio_resultado->competidores[quant_vencedores] = torneio->competidores[1];
         int temp = torneio_resultado->competidores[quant_vencedores]->posicao_largada;
-        torneio->competidores[temp] = competidor_criar(aluno_criar_null(), temp); 
+        torneio->competidores[temp] = NULL;
         torneio_resultado->competidores[quant_vencedores]->posicao_largada = quant_vencedores+1;
         return temp;
     }
@@ -237,11 +230,12 @@ static int torneio_preencher_resultado(TORNEIO *torneio_resultado, TORNEIO *torn
 }
 
 static void torneio_imprimir_resultado(TORNEIO *torneio_resultado, int n_alunos)
-{
+{//imprime o resultado do torneio
     printf("Maior media: %.3f ", aluno_get_media(torneio_resultado->competidores[0]->aluno));
     for (int i = 0; i < n_alunos-1; i++)
     {
-        if(torneio_resultado->competidores[i]->criterio_desempate>0){
+        if(torneio_resultado->competidores[i]->criterio_desempate>0)
+        {
             printf("\n%d. %s - desempate: nota %d", i+1, aluno_get_nome(torneio_resultado->competidores[i]->aluno),torneio_resultado->competidores[i]->criterio_desempate);
         }else{
             printf("\n%d. %s - media", i+1, aluno_get_nome(torneio_resultado->competidores[i]->aluno));
@@ -250,4 +244,21 @@ static void torneio_imprimir_resultado(TORNEIO *torneio_resultado, int n_alunos)
 
     printf("\n%d. %s", n_alunos, aluno_get_nome(torneio_resultado->competidores[n_alunos-1]->aluno));
     
+}
+
+static boolean torneio_terminar(TORNEIO *torneio, TORNEIO *torneio_resultado, DIARIO *diario)
+{//termina o torneio, dando free e retornando o vetor ordenado
+    if(torneio != NULL && torneio_resultado != NULL)
+    {
+        for (int i = 0; i < diario_get_nAlunos(diario); i++)
+        {  
+            diario_alterar_aluno(diario, torneio_resultado->competidores[i]->aluno, i);
+            free(torneio_resultado->competidores[i]);
+        }
+
+        torneio_apagar(&torneio);
+        torneio_apagar(&torneio_resultado);
+        return TRUE;
+    }
+    return FALSE;
 }
