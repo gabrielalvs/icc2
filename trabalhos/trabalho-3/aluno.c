@@ -6,7 +6,7 @@
 struct aluno_st
 {
     char nusp[10];
-    int notas[4]; 
+    float notas[4]; 
     int n_notas_add;
     unsigned int senha;
 };
@@ -38,7 +38,7 @@ boolean aluno_apagar(ALUNO **aluno)
     return FALSE;
 }
 
-boolean aluno_set_nota(ALUNO *aluno, int nota)
+boolean aluno_set_nota(ALUNO *aluno, float nota)
 {
     if (aluno != NULL){
         aluno->notas[aluno->n_notas_add] = nota;
@@ -54,6 +54,14 @@ void aluno_imprimir(const ALUNO *aluno)
     if (aluno != NULL)
     {
         printf("\n-->nusp: %s", aluno->nusp);
+    }
+}
+
+void aluno_imprimir_notas(const ALUNO *aluno)
+{
+    if (aluno != NULL)
+    {
+        printf("Notas: P1=%.1lf, P2=%.1lf, T1=%.1lf, T2=%.1lf \n", aluno->notas[0],aluno->notas[1],aluno->notas[2],aluno->notas[3]);
     }
 }
 
@@ -83,4 +91,14 @@ char *aluno_get_nusp(ALUNO *aluno)
     }
 
     return NULL;
+}
+
+unsigned int aluno_get_senha(ALUNO *aluno)
+{
+    if (aluno != NULL)
+    {
+       return aluno->senha;
+    }
+
+    return 0;
 }

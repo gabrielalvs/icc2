@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "lista.h"
 #include "aluno.h"
+#include <stdio.h>
 
 typedef struct node_st NODE;
 
@@ -46,7 +47,7 @@ int lista_tamanho(const LISTA *lista)
     return ERRO;
 }
 
-int lista_inserir(LISTA *lista, ALUNO *aluno)
+boolean lista_inserir(LISTA *lista, ALUNO *aluno)
 {
     if(lista != NULL)
     {
@@ -67,6 +68,7 @@ int lista_inserir(LISTA *lista, ALUNO *aluno)
             return TRUE;
         }
     }
+    printf("Deu erro");
     return ERRO;
 }
 
@@ -117,6 +119,36 @@ boolean lista_remover_aluno(LISTA *lista, char *chave) {
             return TRUE;
         }
     }
+    return FALSE;
+}
+
+boolean lista_apagar(LISTA **lista)
+{
+    if (lista!=NULL)
+    {
+    
+        NODE *node_atual;
+        node_atual = (*lista)->inicio;
+        while((node_atual != NULL))
+        {
+            NODE *node_removido;
+            node_removido = node_atual;
+            node_atual = node_removido->proximo;
+            node_removido->proximo = NULL;
+            (*lista)->tamanho--;
+            aluno_apagar(&(node_removido->aluno));
+            node_removido->aluno = NULL;
+            free(node_removido);
+            node_removido = NULL;
+        }
+        
+        (*lista)->inicio = NULL;
+        (*lista)->fim = NULL;
+        free(*lista);
+        *lista = NULL;
+        return TRUE;
+    }
+
     return FALSE;
 }
 

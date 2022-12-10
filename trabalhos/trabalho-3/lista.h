@@ -19,4 +19,5 @@ int lista_tamanho(const LISTA *lista);
 int lista_inserir(LISTA *lista, ALUNO *aluno);
 ALUNO *lista_busca_sequencial(const LISTA *lista, char *chave);
 boolean lista_remover_aluno(LISTA *lista, char *chave);
+boolean lista_apagar(LISTA **lista);
 #endif //LISTA_H
