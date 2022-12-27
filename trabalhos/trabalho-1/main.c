@@ -21,7 +21,6 @@ int main (void){
       return 0;
    }
 
-
    int nopcao = 0;
    char nm_caract[ 20 ];
    int id_catact;
